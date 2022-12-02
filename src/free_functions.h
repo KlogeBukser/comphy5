@@ -8,7 +8,9 @@ namespace free_funcs {
 	std::string make_filename(std::string instruction);
 
 	int convert_indices(int i, int j, int n_spatial);
-	arma::cx_mat make_CN_matrix(arma::cx_double r, arma::cx_vec b);
-	void fill_matrices(arma::cx_mat& A, arma::cx_mat& B, arma::cx_mat V, double h, double dt, int n_spatial);
+	arma::sp_cx_mat make_CN_matrix(arma::cx_double r, arma::cx_vec b);
+	void fill_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B, arma::mat V, double h, double dt, int n_spatial);
+
+	void sp_print(arma::sp_cx_mat& A);
 };
 #endif

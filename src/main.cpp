@@ -36,20 +36,19 @@ int main(int argc, char* argv[])
         int M = atoi(argv[2]);                  // Number of spatial steps
         int n_time = atoi(argv[3]);
 
-        double h = 1.0 / M;             // Spatial step length
+        double h = 1.0 / M;                     // Spatial step length
         double dt = 1.0 / n_time;               // Time step length
 
         int n_points = (M - 2) * (M - 2);       // Number of points in each column/row of A and B
         
 
-        cx_mat A(n_points,n_points, fill::value(0.));
-        cx_mat B(n_points, n_points, fill::value(0.));
-        cx_mat V(n_points, n_points, fill::value(0.));
+        sp_cx_mat A;
+        sp_cx_mat B;
+        mat V(n_points, n_points, fill::value(0.));
 
         fill_matrices(A, B, V, h, dt, M);
 
-        A.print();
-        B.print();
+        sp_print(A);
 
 
         // Makes filename
