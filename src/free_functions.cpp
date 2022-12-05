@@ -57,84 +57,6 @@ namespace free_funcs {
 		return filename;
 	}
 
-	int convert_indices(int i, int j, int n_spatial) {
-		/*
-		Computes index k in flattened matrix from indices i,j from non-flat square matrix
-
-		Input: (int) i,j,n_spatial (i,j:matrix indeces. n_spatial: points in on col/row of old matrix)
-		Output: (int) k (index in flattened matrix)
-		*/
-		return i*n_spatial + j;
-	}
-
-	sp_cx_mat make_CN_matrix(cx_double r, cx_vec b) {
-		/*
-		Produces sparse complex matrix B with vector b as the diagonal and double r on some selected sub/super-diagonals
-
-		Input:
-		- complex vector b
-		- double value r
-
-		Output: sparse complex matrix B
-		*/
-
-		sp_cx_mat B = sp_cx_mat(diagmat(b));
-		int sub_dim = sqrt(b.size());
-
-		// Declaration for combined index k
-		int k;
-
-		// Fills the values on sub- and superdiagonal
-		for (int i = 0; i < sub_dim; i++) {
-			for (int j = 0; j < sub_dim - 1; j++) {
-				
-				k = convert_indices(i, j, sub_dim);
-				B(k, k + 1) = r;
-				B(k + 1, k) = r;
-			}
-		}
-		
-		// Fills the values on the diagonals 'sub_dim' elements from the main diagonal.
-		for (int k = 0; k < sub_dim * (sub_dim - 1); k++) {
-			B(k, k + sub_dim) = r;
-			B(k + sub_dim, k) = r;
-		}
-
-		return B;
-	}
-
-	void fill_matrices(sp_cx_mat& A, sp_cx_mat& B, mat V, double h, double dt, int M){
-		/*
-		- Computes r, a, b from matrix V
-		- Fills in matrices A, B from these values
-
-		Input: 
-		- References to sparse complex matrices A and B (Used for updating wavefunction in time)
-		- Real matrix V (potential values)
-		- (double) h,dt (distance between points,smallest time-interval)
-		- (int) M (number of points in spatial directions x and y)
-
-		Output: void
-		*/
-		cx_double r_h_sq = 1i * dt / 2.;                  // r*h^2
-		cx_double r = r_h_sq / (h * h);
-		int n_points = (M - 2) * (M - 2);
-
-		cx_vec a(n_points);
-		cx_vec b(n_points);
-		int k;
-		for (int i = 0; i < M - 2; i++) {
-			for (int j = 0; j < M - 2; j++) {
-				k = convert_indices(i, j, M-2);
-				a(k) = 1. + 4. * r + r_h_sq * V(i, j);
-				b(k) = 2. - a(k);
-			}
-		}
-
-		A = make_CN_matrix(-r, a);
-		B = make_CN_matrix(r, b);
-	}
-
 	void sp_print(sp_cx_mat& A) {
 
 		/*
@@ -173,34 +95,4 @@ namespace free_funcs {
 		}
 		cout << "[matrix size: " << A.n_rows << "x" << A.n_cols << "; n_nonzero: " << nnz << ";]\n";
 	}
-
-	void fill_potential_mat(mat& V, double v0){
-
-		return;
-	}
-
-	void update_state(sp_cx_mat& A, sp_cx_mat& B, cx_vec& u) {
-		cx_vec b = B * u;
-		u = spsolve(A, b);
-	}
-
-	cx_vec set_initial_state(int M, double h, double xc, double yc, double px, double py, double sig_x, double sig_y) {
-		double x = 0.0;
-		double y = 0.0;
-
-		cx_vec u((M - 2)*(M - 2));
-		for (int i = 0; i < M - 2; i++) {
-			x += h;
-			for (int j = 0; j < M - 2; j++) {
-				y += h;
-				u[convert_indices(i, j, M - 2)] = exp(-0.5 * (pow((x - xc) / sig_x, 2) + pow((y - yc) / sig_y, 2)) + 1i*(px*(x-xc) + py*(y-yc)));
-			}
-			y = 0.0;
-		}
-		u = normalise(u);
-		
-		return u;
-	}
-
-
 }
