@@ -45,12 +45,17 @@ int main(int argc, char* argv[])
         sp_cx_mat A;
         sp_cx_mat B;
         mat V(n_points, n_points, fill::value(0.));
+        double v0 = 1e5;
 
+        fill_potential_mat(V, v0);
         fill_matrices(A, B, V, h, dt, M);
 
-        sp_print(A);
+        //sp_print(A);
 
+        double xc = 0.4, yc = 0.4, px = 0.02, py = 0.08, sig_x = 0.02, sig_y = 0.02;
 
+        cx_vec u = set_initial_state(M, h, xc, yc, px, py, sig_x, sig_y);
+        
         // Makes filename
         string filename = make_filename(instruction);
         cout << filename << endl;

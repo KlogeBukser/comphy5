@@ -3,7 +3,7 @@ all: all-c clean
 
 all-mac: compile-mac clean
 
-all-c: compile run
+all-c: compile run5
 
 all-comp: compile-mac crit plot-crit np_crit plot-np-crit
 all-crit: compile-mac crit plot-crit 

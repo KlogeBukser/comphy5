@@ -174,4 +174,33 @@ namespace free_funcs {
 		cout << "[matrix size: " << A.n_rows << "x" << A.n_cols << "; n_nonzero: " << nnz << ";]\n";
 	}
 
+	void fill_potential_mat(mat& V, double v0){
+
+		return;
+	}
+
+	void update_state(sp_cx_mat& A, sp_cx_mat& B, cx_vec& u) {
+		cx_vec b = B * u;
+		u = spsolve(A, b);
+	}
+
+	cx_vec set_initial_state(int M, double h, double xc, double yc, double px, double py, double sig_x, double sig_y) {
+		double x = 0.0;
+		double y = 0.0;
+
+		cx_vec u((M - 2)*(M - 2));
+		for (int i = 0; i < M - 2; i++) {
+			x += h;
+			for (int j = 0; j < M - 2; j++) {
+				y += h;
+				u[convert_indices(i, j, M - 2)] = exp(-0.5 * (pow((x - xc) / sig_x, 2) + pow((y - yc) / sig_y, 2)) + 1i*(px*(x-xc) + py*(y-yc)));
+			}
+			y = 0.0;
+		}
+		u = normalise(u);
+		
+		return u;
+	}
+
+
 }
