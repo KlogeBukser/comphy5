@@ -1,9 +1,9 @@
 
 all: all-c clean
 
-all-mac: compile-mac run5 clean
+all-mac: compile-mac probability clean
 
-all-c: compile run5
+all-c: compile probability
 
 
 compile:
@@ -12,14 +12,9 @@ compile:
 compile-mac:
 	g++-12 -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo -fopenmp
 
-run4:
-	main.out test 4 1
-
-run5:
-	main.out test 5 1
-
-run6:
-	main.out test 6 1
+probability: # instruction, n_slits, h, dt, T, xc, sig_x, px, yc, sig_y, py, V0
+	main.out probability 0 0.005 0.000025 0.008 0.25 0.05 200 0.5 0.05 0 0;
+	main.out probability 2 0.005 0.000025 0.008 0.25 0.05 200 0.5 0.1 0 1e10;
 
 
 clean:

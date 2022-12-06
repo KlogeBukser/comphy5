@@ -1,5 +1,7 @@
 
+
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cmath>
 #include <ctime>
@@ -13,17 +15,19 @@ using namespace std;
 // Armadillo
 using namespace arma;
 
-Box::Box(int M, int n_time, double xc, double yc, double px, double py, double sig_x, double sig_y) {
+
+Box::Box(int n_slits, double h, double timestep, double xc, double sig_x, double px, double yc, double sig_y, double py, double V0) {
 	/*
 	Initializer for Box class
 	*/
-	dx = 1.0 / M;							// Spatial step length (x and y)
-	x_dim = (M - 2);						// Number of points in x-direction (and y)
+	dx = h;									// Spatial step length (x and y)
+	x_dim = int(1.0 / dx) - 2;				// (M - 2) = Number of points in x-direction (and y)
 	sq_dim = x_dim * x_dim;					// Number of points in each column/row of A and B
-	dt = 1.0 / n_time;						// Time step length
+	dt = timestep;							// Time step length
 
-	double v0 = 1.0e5;
-	make_potential(v0);
+
+	make_pos_vectors();
+	make_potential(n_slits,V0);
 	make_matrices();
 
 	set_initial_state(xc, yc, px, py, sig_x, sig_y);
@@ -90,19 +94,14 @@ void Box::print() {
 	free_funcs::sp_print(B);
 }
 
-void Box::set_initial_state(double xc, double yc, double px, double py, double sig_x, double sig_y) {
 
-	double x = 0.0;
-	double y = 0.0;
+void Box::set_initial_state(double xc, double yc, double px, double py, double sig_x, double sig_y) {
 
 	u = cx_vec(sq_dim);
 	for (int i = 0; i < x_dim; i++) {
-		x += dx;
 		for (int j = 0; j < x_dim; j++) {
-			y += dx;
-			u[convert_indices(i, j)] = exp(-0.5 * (pow((x - xc) / sig_x, 2) + pow((y - yc) / sig_y, 2)) + 1i * (px * (x - xc) + py * (y - yc)));
+			u[convert_indices(i, j)] = exp(-0.5 * (pow((x[i] - xc) / sig_x, 2) + pow((y[j] - yc) / sig_y, 2)) + 1i * (px * (x[i] - xc) + py * (y[j] - yc)));
 		}
-		y = 0.0;
 	}
 	u = normalise(u);
 }
@@ -110,8 +109,81 @@ void Box::set_initial_state(double xc, double yc, double px, double py, double s
 void Box::update_state() {
 	cx_vec b = B * u;
 	u = spsolve(A, b);
+	current_time += dt;
 }
 
-void Box::make_potential(double v0) {
-	V = mat(sq_dim, sq_dim, fill::value(0.));
+string Box::get_string() {
+	string info = to_string(real(u[0])) + " " + to_string(imag(u[0]));
+	for (int i = 1; i < sq_dim; i++) {
+		info += " , " + to_string(real(u[i])) + " " + to_string(imag(u[i]));
+	}
+	return info;
+}
+
+double Box::total_probability() {
+	
+	double probability = 0.0;
+	for (int i = 0; i < sq_dim; i++) {
+		probability += norm(u[i]);
+	}
+	return probability;
+}
+
+
+
+void Box::make_pos_vectors() {
+
+	x = vec(x_dim);
+	y = vec(x_dim);
+	for (int i = 0; i < x_dim; i++) {
+		x[i] = dx * (i + 1);
+		y[i] = dx * (i + 1);
+	}
+}
+
+void Box::make_potential(int n_slits, double v0) {
+	
+	V = mat(x_dim, x_dim, fill::value(0.));
+	if (n_slits == 2) {
+		make_potential_double(v0);
+	}
+}
+
+void Box::make_potential_double(double v0) {
+	
+	double x_mid = 0.5;
+	double thickness = 0.02;
+	double mid_wall_length = 0.05;
+	double aperture = 0.05;
+
+	// This snippet finds which indices in x-direction are inside the wall
+	int width_index = 0;
+	while (x[width_index] < thickness) {
+		width_index++;
+	}
+	width_index--;
+
+	// The outer loop only loops over the x-indices corresponding to the wall
+	for (int i = (x_dim - width_index) / 2; i < (x_dim + width_index) / 2; i++) {
+		for (int j = 0; j < x_dim; j++) {
+
+			// Skips the current point if it is in the slit opening
+			if (abs(0.45 - y[j]) < 0.025 || abs(0.55 - y[j]) < 0.025) {
+				continue;
+			}
+
+			V[i, j] = v0;
+		}
+	}
+}
+
+void Box::evolve_probability(double time, string filename) {
+
+	ofstream outfile(filename);
+
+	while (current_time < time) {
+		outfile << current_time << " , " << to_string(total_probability()) << endl;
+		update_state();
+		cout << "Time: " << current_time << endl;
+	}
 }

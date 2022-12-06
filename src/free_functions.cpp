@@ -9,7 +9,28 @@ using namespace arma;
 
 namespace free_funcs {
 
-	bool eval_argc(int argc) {
+	void print_minimum_req() {
+		cout << 
+			"All calls of this program should include the following parameters:\n"
+			"- Run time instruction: ('probability' / 'burn' / 'distribution' / 'critical' )\n"
+			"- number of slits (int: 0,1,2,3) \n"
+			"- step length 'h' in x/y direction (double) \n"
+			"- timestep 'dt' (double) \n"
+			"- Total time 'T' (double) \n"
+			"- center of wavepacket 'xc' in x-direction (double) \n"
+			"- width of wavepacket 'sig_x' in x-direction (double) \n"
+			"- momentum of wavepacket 'px' in x-direction (double) \n"
+			"- center of wavepacket 'yc' in y-direction (double) \n"
+			"- width of wavepacket 'sig_y' in y-direction (double) \n"
+			"- momentum of wavepacket 'py' in y-direction (double) \n";
+	}
+
+	bool eval_argc(int argc)
+	{
+		return eval_argc(argc, "none");
+	}
+
+	bool eval_argc(int argc, string instruction) {
 		/*
 		Evaluates if the minimum amount of cmd parameters are included. Writes information about missing cmd parameters if not enough
 
@@ -17,17 +38,22 @@ namespace free_funcs {
 		Output: bool
 		*/
 
-		if (argc < 3) {
-			// These parameters are needed for all program runs
-			std::cout << "\nMissing input parameters! (" << argc - 1 << " parameters was included.) \n"
-				"All calls of this program should include the following parameters:\n"
-				"- Run time instruction: ('simple' / 'burn' / 'distribution' / 'critical' )\n"
-				"- number of points in x/y direction (int) \n"
-				"- Number of timesteps (int) \n";
+		if (argc < 12) {
+			// (argc - 1) is used here as the first parameter 'main.out' is not a paramater in the same sense as the others 
+			cout << "\nMissing input parameters! (" << argc - 1 << " parameters was included) \n";
+			print_minimum_req();
+			cout << "\nIf number of slits > 0, the following parameter must be included as well:\n"
+				"- barrier potential strength 'V0' (double) \n";
+			
 			return false;
+		}
+		if (instruction == "barrier" && argc < 13) {
+			cout << "\nAs the number of slits > 0, the following parameter must be included:\n"
+				"- barrier potential strength 'V0' (double) \n";
 		}
 		return true;
 	}
+
 	
 	void wrong_cmd_input(string instruction) {
 		/* 
@@ -38,10 +64,12 @@ namespace free_funcs {
 		*/
 
 		// Is called regardless of what is missing
-		cout << "To run program with instruction '" << instruction << "', the following parameters : are needed\n"
-			"- Run time instruction: " << instruction << "\n"
-			"- number of points in x/y direction (int) \n"
-			"- Number of timesteps (int) \n";
+		cout << "To run program with instruction '" << instruction << "', the following parameters : are needed:\n";
+		print_minimum_req();
+
+	}
+	string make_filename(string instruction, int n_slits) {
+		return make_filename(instruction + "_" + to_string(n_slits));
 	}
 
 	string make_filename(string instruction) {

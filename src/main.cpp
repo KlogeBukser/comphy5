@@ -1,6 +1,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cmath>
 #include <ctime>
@@ -11,7 +12,7 @@
 
 
 
-#define ERR_MISSING_PARAMS 1
+constexpr auto ERR_MISSING_PARAMS = 1;
 
 // Standard library
 using namespace std;
@@ -30,38 +31,41 @@ int main(int argc, char* argv[])
     }
 
     std::string instruction = argv[1];
+    int n_slits = atoi(argv[2]);
+    double barrier_potential = 0.0;
 
-    if (instruction == "test") {
-        
-            
-        int M = atoi(argv[2]);                  // Number of spatial steps
-        int n_time = atoi(argv[3]);
+    // Takes the cmd_input for potential if there is a barrier in the middle. 
+    if (n_slits > 0) {
+        if (!eval_argc(argc,"barrier")) {
+            return ERR_MISSING_PARAMS;
+        }
+        barrier_potential = atof(argv[12]);
+    }
 
-        //double h = 1.0 / M;                     // Spatial step length
-        //double dt = 1.0 / n_time;               // Time step length
+    double h = atof(argv[3]);
+    double dt = atof(argv[4]);
+    double time = atof(argv[5]);
 
-        //int n_points = (M - 2) * (M - 2);       // Number of points in each column/row of A and B
-        //
+    double xc = atof(argv[6]);
+    double sig_x = atof(argv[7]);
+    double px = atof(argv[8]);
 
-        //sp_cx_mat A;
-        //sp_cx_mat B;
-        //mat V(n_points, n_points, fill::value(0.));
-        //double v0 = 1e5;
-
-        //fill_potential_mat(V, v0);
-        //fill_matrices(A, B, V, h, dt, M);
+    double yc = atof(argv[9]);
+    double sig_y = atof(argv[10]);
+    double py = atof(argv[11]);
 
 
-        double xc = 0.4, yc = 0.4, px = 0.02, py = 0.08, sig_x = 0.02, sig_y = 0.02;
+    if (instruction == "probability") {
 
-            
-        Box the_box = Box(M, n_time, xc, yc, px, py, sig_x, sig_y);
-        the_box.print();
-        the_box.update_state();
-        
         // Makes filename
-        string filename = make_filename(instruction);
-        cout << filename << endl;
+        string filename = make_filename(instruction, n_slits);
+
+        // Makes the box
+        Box box = Box(n_slits,h, dt, xc, yc, px, py, sig_x, sig_y, barrier_potential);
+
+
+        // Evolve for the duration and writes total probability to file for each step
+        box.evolve_probability(time, filename);
 
     }
 }
