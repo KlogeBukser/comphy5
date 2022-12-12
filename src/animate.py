@@ -89,5 +89,5 @@ anim = FuncAnimation(fig, animation_density, interval=1, frames=np.arange(0, len
 plt.show()
 
 # # Save the animation
-#anim.save('./animation.mp4', writer="ffmpeg", bitrate=-1, fps=30)
+anim.save('plots/animation.mp4', writer="ffmpeg", bitrate=-1, fps=30)
 

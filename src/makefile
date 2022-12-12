@@ -6,7 +6,6 @@ all-mac: compile-mac probability clean
 all-c: compile probability
 
 heat: compile heat_sim heatmap
-interference: compile heat_sim interference_plot
 evo: compile evo_sim animate
 
 compile:
@@ -33,8 +32,13 @@ animate:
 heatmap:
 	python3 heatmap.py
 
-interference_plot:
-	python3 interference.py
+interference:
+	main.out heat 1 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0.002
+	main.out heat 2 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0.002
+	main.out heat 3 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0.002
+	python3 interference.py 1
+	python3 interference.py 2
+	python3 interference.py 3
 
 clean:
 	rm f *.out textfiles/*.txt *.txt

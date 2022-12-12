@@ -15,7 +15,7 @@ using namespace std;
 using namespace arma;
 
 
-Box::Box(int n_slits, double h, double timestep, double xc, double sig_x, double px, double yc, double sig_y, double py, double V0) {
+Box::Box(int nunber_of_slits, double h, double timestep, double xc, double sig_x, double px, double yc, double sig_y, double py, double V0) {
 	/*
 	Initializer for Box class
 	*/
@@ -23,11 +23,11 @@ Box::Box(int n_slits, double h, double timestep, double xc, double sig_x, double
 	x_dim = int(1.0 / dx) - 1;				// (M - 2) = Number of points in x-direction (and y)
 	sq_dim = x_dim * x_dim;					// Number of points in each column/row of A and B
 	dt = timestep;							// Time step length
-
+	n_slits = nunber_of_slits;
 	
 
 	make_pos_vectors();
-	make_potential(n_slits,V0);
+	make_potential(V0);
 	make_matrices();
 	set_initial_state(xc, yc, px, py, sig_x, sig_y);
 }
@@ -133,7 +133,6 @@ double Box::total_probability() {
 }
 
 
-
 void Box::make_pos_vectors() {
 
 	x = vec(x_dim);
@@ -144,31 +143,65 @@ void Box::make_pos_vectors() {
 	}
 }
 
-void Box::make_potential(int n_slits, double v0) {
-	
+void Box::make_potential( double v0) {
 	V = vec(sq_dim);
-	if (n_slits == 2) {
-		make_potential_double(v0);
-	}
-}
-
-void Box::make_potential_double(double v0) {
 	
-	double thickness = 0.02;
+	if (n_slits == 1) {
+		potential = &Box::single_potential;
+	}
 
+	else if (n_slits == 2) {
+		potential = &Box::double_potential;
+	}
+
+	else if (n_slits == 3) {
+		potential = &Box::triple_potential;
+	}
+	else {
+		return;
+	}
+
+	double thickness = 0.02;
 	for (int i = 0; i < x_dim; i++) {
 		if (abs(x[i] - 0.5) > thickness / 2.0) {
 			continue;
 		}
-		for (int j = 0; j < x_dim; j++) {
 
-			// Skips the current point if it is in the slit opening
-			if (!(abs(0.45 - y[j]) < 0.025 || abs(0.55 - y[j]) < 0.025)) {
-				V[convert_indices(i, j)] = v0;
-			}
+		(this->*potential)(i, v0);
+	}
+}
+
+void Box::single_potential(int i, double v0) {
+
+	for (int j = 0; j < x_dim; j++) {
+
+		// Skips the current point if it is in the slit opening
+		if (!(abs(0.5 - y[j]) < 0.025)) {
+			V[convert_indices(i, j)] = v0;
 		}
 	}
+}
+
+void Box::double_potential(int i, double v0) {
 	
+	for (int j = 0; j < x_dim; j++) {
+
+		// Skips the current point if it is in the slit opening
+		if (!(abs(0.45 - y[j]) < 0.025 || abs(0.55 - y[j]) < 0.025)) {
+			V[convert_indices(i, j)] = v0;
+		}
+	}	
+}
+
+void Box::triple_potential(int i, double v0) {
+
+	for (int j = 0; j < x_dim; j++) {
+
+		// Skips the current point if it is in the slit opening
+		if (!(abs(0.4 - y[j]) < 0.025 || abs(0.5 - y[j]) < 0.025 || abs(0.6 - y[j]) < 0.025)) {
+			V[convert_indices(i, j)] = v0;
+		}
+	}
 }
 
 void Box::write_probability(double time, string filename) {
@@ -180,9 +213,9 @@ void Box::write_probability(double time, string filename) {
 
 	while (current_time < time) {
 		update_state();
-		outfile << current_time << " , " << to_string(total_probability()) << endl;	
-		cout << "Time: " << current_time << endl;
+		outfile << current_time << " , " << to_string(total_probability()) << endl;
 	}
+	outfile.close();
 }
 
 void Box::write_state(vec times, string filename) {
@@ -204,7 +237,9 @@ void Box::write_state(vec times, string filename) {
 	}
 	outfile.close();
 
-	ofstream outfile2("textfiles/interference.txt");
+	ofstream outfile2("textfiles/interference" + to_string(n_slits) + ".txt");
+
+	outfile2 << to_string(0.8) << " " << to_string(current_time) << endl;
 
 	for (int i = 0; i < x_dim; i++) {
 		if (abs(x[i] - 0.8) < 1e-8) {

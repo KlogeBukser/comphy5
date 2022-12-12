@@ -12,6 +12,8 @@ n_values = int(lines[0]) + 2
 for line in lines[1:]:
     
     time, data = line.split(':')
+    time = 1000*float(time)
+
     value_sets = data.split(',')
 
     prob = np.zeros((n_values,n_values))
@@ -36,7 +38,7 @@ for line in lines[1:]:
 
     for elem,name,title_part in zip([prob,np.sqrt(prob),real,imag],["prob","root","real","imag"], ["P", "Square root of p","Real part of p", "Imaginary part of p"]):
        
-        title = title_part + "robability distribution after " + time[:6] + " seconds"
+        title = title_part + "robability distribution after " + str(time) + " ms"
     
         # Create figure
         fig = plt.figure()
@@ -57,6 +59,6 @@ for line in lines[1:]:
 
         plt.title(title)
 
-        plt.savefig("plots/distribution_" + name + time[:6] + ".png")
+        plt.savefig("plots/distribution_" + name + str(time) + ".png")
     
 
