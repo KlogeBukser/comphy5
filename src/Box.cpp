@@ -1,5 +1,4 @@
 
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -21,20 +20,20 @@ Box::Box(int n_slits, double h, double timestep, double xc, double sig_x, double
 	Initializer for Box class
 	*/
 	dx = h;									// Spatial step length (x and y)
-	x_dim = int(1.0 / dx) - 2;				// (M - 2) = Number of points in x-direction (and y)
+	x_dim = int(1.0 / dx) - 1;				// (M - 2) = Number of points in x-direction (and y)
 	sq_dim = x_dim * x_dim;					// Number of points in each column/row of A and B
 	dt = timestep;							// Time step length
 
+	
 
 	make_pos_vectors();
 	make_potential(n_slits,V0);
 	make_matrices();
-
 	set_initial_state(xc, yc, px, py, sig_x, sig_y);
 }
 
 int Box::convert_indices(int i, int j) {
-	return i * x_dim + j;
+	return j * x_dim + i;
 }
 
 void Box::make_matrices() {
@@ -55,27 +54,19 @@ void Box::make_matrices() {
 
 	cx_vec b(sq_dim);
 
-	for (int i = 0; i < x_dim; i++) {
-		
-		for (int j = 0; j < x_dim; j++) {
-			int k = convert_indices(i, j);
-			b(k) = 1. - 4. * r - r_h_sq * V(i, j);
-		}
-	}
 
+	for (int k = 0; k < sq_dim; k++) {
+		b(k) = 1. - 4. * r - r_h_sq * V[k];
+	}
 	B = sp_cx_mat(diagmat(b));
 
 	// Fills the values on sub- and superdiagonal
-	for (int i = 0; i < x_dim; i++) {
-		for (int j = 0; j < x_dim - 1; j++) {
-
-			int k = convert_indices(i, j);
-			B(k, k + 1) = r;
-			B(k + 1, k) = r;
-		}
+	for (int k = 0; k < sq_dim - 1; k++) {
+		B(k, k + 1) = r;
+		B(k + 1, k) = r;
 	}
 
-	// Fills the values on the diagonals 'x_dim' elements from the main diagonal.
+	// Fills the values on the outer diagonals
 	for (int k = 0; k < x_dim * (x_dim - 1); k++) {
 		B(k, k + x_dim) = r;
 		B(k + x_dim, k) = r;
@@ -108,23 +99,35 @@ void Box::set_initial_state(double xc, double yc, double px, double py, double s
 
 void Box::update_state() {
 	cx_vec b = B * u;
-	u = spsolve(A, b);
+	
+	superlu_opts opts;
+
+	opts.allow_ugly = true;
+	opts.symmetric = true;
+
+	spsolve(u, A, b, "superlu", opts);
 	current_time += dt;
 }
 
-string Box::get_string() {
-	string info = to_string(real(u[0])) + " " + to_string(imag(u[0]));
-	for (int i = 1; i < sq_dim; i++) {
-		info += " , " + to_string(real(u[i])) + " " + to_string(imag(u[i]));
+void Box::update_state(double time) {
+	// Updates the current time until the desired time is reached
+	while (current_time <= time - 1e-10) {
+		update_state();
 	}
-	return info;
+}
+
+
+string Box::get_string(int i, int j) {
+	int k = convert_indices(i, j);
+
+	return to_string(norm(u[k])) + " " + to_string(real(u[k])) + " " + to_string(imag(u[k]));
 }
 
 double Box::total_probability() {
 	
 	double probability = 0.0;
-	for (int i = 0; i < sq_dim; i++) {
-		probability += norm(u[i]);
+	for (int k = 0; k < sq_dim; k++) {
+		probability += norm(u[k]);
 	}
 	return probability;
 }
@@ -143,7 +146,7 @@ void Box::make_pos_vectors() {
 
 void Box::make_potential(int n_slits, double v0) {
 	
-	V = mat(x_dim, x_dim, fill::value(0.));
+	V = vec(sq_dim);
 	if (n_slits == 2) {
 		make_potential_double(v0);
 	}
@@ -151,39 +154,89 @@ void Box::make_potential(int n_slits, double v0) {
 
 void Box::make_potential_double(double v0) {
 	
-	double x_mid = 0.5;
 	double thickness = 0.02;
-	double mid_wall_length = 0.05;
-	double aperture = 0.05;
 
-	// This snippet finds which indices in x-direction are inside the wall
-	int width_index = 0;
-	while (x[width_index] < thickness) {
-		width_index++;
-	}
-	width_index--;
-
-	// The outer loop only loops over the x-indices corresponding to the wall
-	for (int i = (x_dim - width_index) / 2; i < (x_dim + width_index) / 2; i++) {
+	for (int i = 0; i < x_dim; i++) {
+		if (abs(x[i] - 0.5) > thickness / 2.0) {
+			continue;
+		}
 		for (int j = 0; j < x_dim; j++) {
 
 			// Skips the current point if it is in the slit opening
-			if (abs(0.45 - y[j]) < 0.025 || abs(0.55 - y[j]) < 0.025) {
-				continue;
+			if (!(abs(0.45 - y[j]) < 0.025 || abs(0.55 - y[j]) < 0.025)) {
+				V[convert_indices(i, j)] = v0;
 			}
-
-			V[i, j] = v0;
 		}
 	}
+	
 }
 
-void Box::evolve_probability(double time, string filename) {
+void Box::write_probability(double time, string filename) {
 
 	ofstream outfile(filename);
 
+	// Initial probability (should be 1)
+	outfile << current_time << " , " << to_string(total_probability()) << endl;
+
 	while (current_time < time) {
-		outfile << current_time << " , " << to_string(total_probability()) << endl;
 		update_state();
+		outfile << current_time << " , " << to_string(total_probability()) << endl;	
 		cout << "Time: " << current_time << endl;
 	}
 }
+
+void Box::write_state(vec times, string filename) {
+
+	ofstream outfile(filename);
+
+	outfile << to_string(x_dim) << endl;
+
+	for (double time : times) {
+		update_state(time);
+		outfile << to_string(current_time) << " : " << "0 0 " << get_string(0, 0);
+
+		for (int i = 1; i < x_dim; i++) {
+			for (int j = 1; j < x_dim; j++) {
+				outfile << " , " << to_string(i) << " " << to_string(j) << " " << get_string(i, j);
+			}
+		}
+		outfile << endl;
+	}
+	outfile.close();
+
+	ofstream outfile2("textfiles/interference.txt");
+
+	for (int i = 0; i < x_dim; i++) {
+		if (abs(x[i] - 0.8) < 1e-8) {
+
+			for (int j = 0; j < x_dim; j++) {
+				outfile2 << to_string(y[j]) << " " << to_string(norm(u[convert_indices(i, j)])) << endl;
+			}
+
+		}
+	}
+	outfile2.close();
+
+}
+
+void Box::write_state(double time, string filename) {
+
+	ofstream outfile(filename);
+	
+	outfile << to_string(x_dim) << endl;
+
+	while (current_time < time) {
+		outfile << to_string(current_time) << " : " << "0 0 " << get_string(0, 0);
+
+		for (int i = 1; i < x_dim; i++) {
+			for (int j = 1; j < x_dim; j++) {
+				outfile << " , " << to_string(i) << " " << to_string(j) << " " << get_string(i, j);
+			}
+		}
+		outfile << endl;
+
+		update_state();
+	}
+	outfile.close();
+}
+

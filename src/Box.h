@@ -1,4 +1,4 @@
-#pragma once
+
 #ifndef BOX_H
 #define BOX_H
 
@@ -15,7 +15,7 @@ class Box {
 	arma::vec x;
 	arma::vec y;
 
-	arma::mat V;
+	arma::vec V;
 	arma::sp_cx_mat A;
 	arma::sp_cx_mat B;
 
@@ -29,11 +29,14 @@ public:
 	void make_potential_double(double v0);
 
 	void print();
-	std::string get_string();
+	std::string get_string(int i, int j);
 	double total_probability();
 
 	void set_initial_state(double xc, double yc, double px, double py, double sig_x, double sig_y);
 	void update_state();
-	void evolve_probability(double time,std::string filename);
+	void update_state(double time);
+	void write_probability(double time,std::string filename);
+	void write_state(arma::vec times, std::string filename);
+	void write_state(double time, std::string filename);
 };
 #endif
