@@ -1,18 +1,15 @@
 
 all: all-c clean
 
-all-mac: compile-mac probability clean
+all-mac: compile-mac probability heat interference animate clean
 
-all-c: compile probability
-
-heat: compile heat_sim heatmap
-evo: compile evo_sim animate
+all-c: compile probability heat interference animate
 
 compile:
-	g++ -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo -fopenmp
+	g++ -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo
 
 compile-mac:
-	g++-12 -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo -fopenmp
+	g++-12 -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo
 
 probability: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T
 	main.out probability 0 0.005 0.000025 0.25 0.05 200 0.5 0.05 0 0 0.008
@@ -20,17 +17,14 @@ probability: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T
 	python3 time_prob.py
 
 
-heat_sim: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T[]
+heat: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T[]
 	main.out heat 2 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0 0.001 0.002
+	python3 heatmap.py
 
-evo_sim: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T
+animate: # instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T
 	main.out evo 2 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0.002
-
-animate:
 	python3 animate.py
 
-heatmap:
-	python3 heatmap.py
 
 interference:
 	main.out heat 1 0.005 0.000025 0.25 0.05 200 0.5 0.2 0 1e5 0.002

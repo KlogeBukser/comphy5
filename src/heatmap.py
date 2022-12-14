@@ -10,10 +10,8 @@ infile.close()
 n_values = int(lines[0]) + 2
 
 for line in lines[1:]:
-    
     time, data = line.split(':')
     time = 1000*float(time)
-
     value_sets = data.split(',')
 
     prob = np.zeros((n_values,n_values))
@@ -22,8 +20,8 @@ for line in lines[1:]:
 
     for values in value_sets:
         values = values.split()
-        i = int(values[0]) + 1
-        j = int(values[1]) + 1
+        j = int(values[0]) + 1
+        i = int(values[1]) + 1
 
         prob[i,j] = float(values[2])
         real[i,j] = float(values[3])
@@ -59,6 +57,6 @@ for line in lines[1:]:
 
         plt.title(title)
 
-        plt.savefig("plots/distribution_" + name + str(time) + ".png")
-    
+        plt.savefig("plots/distribution_" + name + str(time) + ".pdf")
+        plt.close()
 

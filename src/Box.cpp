@@ -6,8 +6,8 @@
 #include <ctime>
 #include <armadillo>
 
-#include "Box.h"
-#include "free_functions.h"
+#include "headers/Box.h"
+#include "headers/free_functions.h"
 
 // Standard library
 using namespace std;
@@ -117,17 +117,11 @@ void Box::update_state(double time) {
 }
 
 
-string Box::get_string(int i, int j) {
-	int k = convert_indices(i, j);
-
-	return to_string(norm(u[k])) + " " + to_string(real(u[k])) + " " + to_string(imag(u[k]));
-}
-
 double Box::total_probability() {
 	
-	double probability = 0.0;
+	double probability = -1.0;
 	for (int k = 0; k < sq_dim; k++) {
-		probability += norm(u[k]);
+		probability +=  norm(u[k]);
 	}
 	return probability;
 }
@@ -209,11 +203,11 @@ void Box::write_probability(double time, string filename) {
 	ofstream outfile(filename);
 
 	// Initial probability (should be 1)
-	outfile << current_time << " , " << to_string(total_probability()) << endl;
+	outfile << current_time << " , " << total_probability() << endl;
 
 	while (current_time < time) {
 		update_state();
-		outfile << current_time << " , " << to_string(total_probability()) << endl;
+		outfile << current_time << " , " << total_probability() << endl;
 	}
 	outfile.close();
 }
@@ -222,15 +216,16 @@ void Box::write_state(vec times, string filename) {
 
 	ofstream outfile(filename);
 
-	outfile << to_string(x_dim) << endl;
+	outfile << x_dim << endl;
 
 	for (double time : times) {
 		update_state(time);
-		outfile << to_string(current_time) << " : " << "0 0 " << get_string(0, 0);
+		outfile << current_time << " : " << "0 0 " << norm(u[0]) << " " << real(u[0]) << " " << imag(u[0]);
 
 		for (int i = 1; i < x_dim; i++) {
 			for (int j = 1; j < x_dim; j++) {
-				outfile << " , " << to_string(i) << " " << to_string(j) << " " << get_string(i, j);
+				int k = convert_indices(i, j);
+				outfile << " , " << i << " " << j << " " << norm(u[k]) << " " << real(u[k]) << " " << imag(u[k]);
 			}
 		}
 		outfile << endl;
@@ -239,13 +234,13 @@ void Box::write_state(vec times, string filename) {
 
 	ofstream outfile2("textfiles/interference" + to_string(n_slits) + ".txt");
 
-	outfile2 << to_string(0.8) << " " << to_string(current_time) << endl;
+	outfile2 << 0.8 << " " << current_time << endl;
 
 	for (int i = 0; i < x_dim; i++) {
 		if (abs(x[i] - 0.8) < 1e-8) {
 
 			for (int j = 0; j < x_dim; j++) {
-				outfile2 << to_string(y[j]) << " " << to_string(norm(u[convert_indices(i, j)])) << endl;
+				outfile2 << y[j] << " " << norm(u[convert_indices(i, j)]) << endl;
 			}
 
 		}
@@ -258,14 +253,15 @@ void Box::write_state(double time, string filename) {
 
 	ofstream outfile(filename);
 	
-	outfile << to_string(x_dim) << endl;
+	outfile << x_dim << endl;
 
 	while (current_time < time) {
-		outfile << to_string(current_time) << " : " << "0 0 " << get_string(0, 0);
+		outfile << current_time << " : " << "0 0 " << norm(u[0]) << " " << real(u[0]) << " " << imag(u[0]);
 
 		for (int i = 1; i < x_dim; i++) {
 			for (int j = 1; j < x_dim; j++) {
-				outfile << " , " << to_string(i) << " " << to_string(j) << " " << get_string(i, j);
+				int k = convert_indices(i, j);
+				outfile << " , " << i << " " << j << " " << norm(u[k]) << " " << real(u[k]) << " " << imag(u[k]);
 			}
 		}
 		outfile << endl;

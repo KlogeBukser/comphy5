@@ -40,7 +40,6 @@ public:
 	void triple_potential(int i, double v0);
 
 	void print();
-	std::string get_string(int i, int j);
 	double total_probability();
 
 	void set_initial_state(double xc, double yc, double px, double py, double sig_x, double sig_y);

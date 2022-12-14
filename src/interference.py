@@ -31,7 +31,7 @@ plt.plot(y_values,density)
 plt.xlabel("y")
 plt.ylabel(r"Probability density $|\psi(x,y,t)|^2$")
 
-plt.savefig("plots/interference" + n_slits + ".png")
+plt.savefig("plots/interference" + n_slits + ".pdf")
 plt.close()
 	
 	

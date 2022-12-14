@@ -86,7 +86,7 @@ def animation_density(i):
 anim = FuncAnimation(fig, animation_density, interval=1, frames=np.arange(0, len(lines[1:]), 2), repeat=False, blit=0)
 
 # Run the animation!
-plt.show()
+plt.close()
 
 # # Save the animation
 anim.save('plots/animation.mp4', writer="ffmpeg", bitrate=-1, fps=30)

@@ -2,7 +2,7 @@
 #include <string>
 #include <armadillo>
 
-#include "free_functions.h"
+#include "headers/free_functions.h"
 
 using namespace std;
 using namespace arma;
@@ -12,25 +12,21 @@ namespace free_funcs {
 	void print_minimum_req() {
 		cout << 
 			"All calls of this program should include the following parameters:\n"
-			"- Run time instruction: ('probability' / 'burn' / 'distribution' / 'critical' )\n"
+			"- Run time instruction: ('probability' / 'heat' / 'evo')\n"
 			"- number of slits (int: 0,1,2,3) \n"
 			"- step length 'h' in x/y direction (double) \n"
 			"- timestep 'dt' (double) \n"
-			"- Total time 'T' (double) \n"
 			"- center of wavepacket 'xc' in x-direction (double) \n"
 			"- width of wavepacket 'sig_x' in x-direction (double) \n"
 			"- momentum of wavepacket 'px' in x-direction (double) \n"
 			"- center of wavepacket 'yc' in y-direction (double) \n"
 			"- width of wavepacket 'sig_y' in y-direction (double) \n"
-			"- momentum of wavepacket 'py' in y-direction (double) \n";
+			"- momentum of wavepacket 'py' in y-direction (double) \n"
+			"- Total time 'T' (double) \n";
 	}
 
-	bool eval_argc(int argc)
-	{
-		return eval_argc(argc, "none");
-	}
 
-	bool eval_argc(int argc, string instruction) {
+	bool eval_argc(int argc) {
 		/*
 		Evaluates if the minimum amount of cmd parameters are included. Writes information about missing cmd parameters if not enough
 
@@ -42,14 +38,9 @@ namespace free_funcs {
 			// (argc - 1) is used here as the first parameter 'main.out' is not a paramater in the same sense as the others 
 			cout << "\nMissing input parameters! (" << argc - 1 << " parameters was included) \n";
 			print_minimum_req();
-			cout << "\nIf number of slits > 0, the following parameter must be included as well:\n"
-				"- barrier potential strength 'V0' (double) \n";
+			
 			
 			return false;
-		}
-		if (instruction == "barrier" && argc < 13) {
-			cout << "\nAs the number of slits > 0, the following parameter must be included:\n"
-				"- barrier potential strength 'V0' (double) \n";
 		}
 		return true;
 	}

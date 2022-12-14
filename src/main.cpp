@@ -1,14 +1,12 @@
 
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cmath>
-#include <ctime>
 #include <armadillo>
 
-#include "free_functions.h"
-#include "Box.h"
+#include "headers/free_functions.h"
+#include "headers/Box.h"
 
 
 
@@ -23,9 +21,6 @@ using namespace free_funcs;
 
 int main(int argc, char* argv[])
 {
-    // Random seed
-    srand(time(NULL));
-
     if (!eval_argc(argc)) {
         return ERR_MISSING_PARAMS;
     }
