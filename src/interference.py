@@ -26,10 +26,10 @@ for i in range(n_values):
 density = density/(np.linalg.norm(density))
 
 
-plt.title(r"Probability density with " + n_slits + " slit(s) ($x = " + x[:4] + "$, $t = " + str(time) + "$ ms)")
+plt.title(r"Probability with " + n_slits + " slit(s) ($x = " + x[:4] + "$, $t = " + str(time) + "$ ms)")
 plt.plot(y_values,density)
 plt.xlabel("y")
-plt.ylabel(r"Probability density $|\psi(x,y,t)|^2$")
+plt.ylabel(r"Probability $|\psi(x,y,t)|^2$")
 
 plt.savefig("plots/interference" + n_slits + ".pdf")
 plt.close()

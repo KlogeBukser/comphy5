@@ -52,7 +52,7 @@ for line in lines[1:]:
 
         # Add a colourbar
         cbar = fig.colorbar(img, ax=ax)
-        cbar.set_label("Density", fontsize=fontsize)
+        cbar.set_label("Probability", fontsize=fontsize)
         cbar.ax.tick_params(labelsize=fontsize)
 
         plt.title(title)
