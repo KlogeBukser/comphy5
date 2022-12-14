@@ -3,7 +3,9 @@ all: all-c clean
 
 all-mac: compile-mac probability heat interference animate clean
 
-all-c: compile probability heat interference animate
+all-c: compile execute
+
+execute: probability heat interference animate
 
 compile:
 	g++ -std=c++17 -o main.out main.cpp Box.cpp free_functions.cpp -larmadillo
