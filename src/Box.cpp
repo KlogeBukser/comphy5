@@ -78,6 +78,9 @@ void Box::make_matrices() {
 
 
 void Box::print() {
+	/*
+	Prints the sparse matrix, with dots representing the non-zero elements. This is only informative for small matrices.
+	*/
 
 	cout << "-------- A --------\n\n";
 	free_funcs::sp_print(A);
@@ -87,6 +90,9 @@ void Box::print() {
 
 
 void Box::set_initial_state(double xc, double yc, double px, double py, double sig_x, double sig_y) {
+	/*
+	Sets the initial quantum state based on input parameters for center position, width and momentum in x- and y-direction (input parameters)
+	*/
 
 	u = cx_vec(sq_dim);
 	for (int i = 0; i < x_dim; i++) {
@@ -98,26 +104,29 @@ void Box::set_initial_state(double xc, double yc, double px, double py, double s
 }
 
 void Box::update_state() {
+	/*
+	Updates the system state, and increases the time by one step.
+	*/
 	cx_vec b = B * u;
 	
-	superlu_opts opts;
-
-	opts.allow_ugly = true;
-	opts.symmetric = true;
-
-	spsolve(u, A, b, "superlu", opts);
+	spsolve(u, A, b);
 	current_time += dt;
 }
 
 void Box::update_state(double time) {
-	// Updates the current time until the desired time is reached
-	while (current_time <= time - 1e-10) {
+	/*
+	Updates the current time until the desired time is reached, with a small toleranse
+	*/ 
+	while (current_time < time - 1e-12) {
 		update_state();
 	}
 }
 
 
 double Box::total_probability() {
+	/*
+	Sums over the probability density for all points in the box.
+	*/
 	
 	double probability = -1.0;
 	for (int k = 0; k < sq_dim; k++) {
@@ -128,6 +137,9 @@ double Box::total_probability() {
 
 
 void Box::make_pos_vectors() {
+	/*
+	Vectors of the possible position values in x- and y- direction.
+	*/
 
 	x = vec(x_dim);
 	y = vec(x_dim);
@@ -138,6 +150,10 @@ void Box::make_pos_vectors() {
 }
 
 void Box::make_potential( double v0) {
+	/*
+	Checks how many slits to use for the potential, and assigns a function pointer to the function for constructing that wall potential.
+	Finds the x-indices corresponding to the middle wall, and calls the function-pointer, which loops over the y-values, and fills the potential.
+	*/
 	V = vec(sq_dim);
 	
 	if (n_slits == 1) {
@@ -166,6 +182,11 @@ void Box::make_potential( double v0) {
 }
 
 void Box::single_potential(int i, double v0) {
+	/*
+	Potential for a wall with 1 slit.
+	Is called from Box::make_potential.
+	Is symmetric over y = 0.5, with slit centered at y = 0.5 with 0.05 aperture
+	*/
 
 	for (int j = 0; j < x_dim; j++) {
 
@@ -177,6 +198,11 @@ void Box::single_potential(int i, double v0) {
 }
 
 void Box::double_potential(int i, double v0) {
+	/*
+	Potential for a wall with 2 slits.
+	Is called from Box::make_potential.
+	Is symmetric over y = 0.5, with slits centered at y = 0.45,0.55, with 0.05 aperture
+	*/
 	
 	for (int j = 0; j < x_dim; j++) {
 
@@ -188,6 +214,11 @@ void Box::double_potential(int i, double v0) {
 }
 
 void Box::triple_potential(int i, double v0) {
+	/*
+	Potential for a wall with 3 slita.
+	Is called from Box::make_potential.
+	Is symmetric over y = 0.5, with slits centered at y = 0.4,0.5,0.6 with 0.05 aperture
+	*/
 
 	for (int j = 0; j < x_dim; j++) {
 
@@ -199,6 +230,9 @@ void Box::triple_potential(int i, double v0) {
 }
 
 void Box::write_probability(double time, string filename) {
+	/*
+	Writes the current time and total probability to file and updates the system state for every time-state
+	*/
 
 	ofstream outfile(filename);
 
@@ -213,6 +247,10 @@ void Box::write_probability(double time, string filename) {
 }
 
 void Box::write_state(vec times, string filename) {
+	/*
+	Writes the indices i,j as well as the probability density, real part of density, and imaginary part of density
+	for every point to file for specific time values. The system is updated until these time-values are reached.
+	*/
 
 	ofstream outfile(filename);
 
@@ -250,6 +288,10 @@ void Box::write_state(vec times, string filename) {
 }
 
 void Box::write_state(double time, string filename) {
+	/*
+	Writes the indices i,j as well as the probability density, real part of density, and imaginary part of density
+	for every point to file for every time step. The system is updated until the final time (input parameter) has been reached.
+	*/
 
 	ofstream outfile(filename);
 	
