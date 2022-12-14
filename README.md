@@ -1,4 +1,4 @@
-# Computational Physics Project 5: Quantum particles in a 2D box
+# Computational Physics Project 5: Quantum interference
 
 ## DESCRIPTION
 - The project simulates a physical system where a quantum state interact with slits in a wall.
@@ -33,6 +33,14 @@ This is plotted for each of the three simulations separately.
 - make animate: This does the same as 'heat', but the state is saved for every timestep.
 An animation is made instead of the plots, with the probability density as the color.
 
+## Parameters
+- When using the premade run configuration in the makefile, the parameters are chosen for you. 
+- The parameters are: instruction, n_slits, h, dt, xc, sig_x, px, yc, sig_y, py, V0, T,
+Where instruction is a string that helps the main cpp program decide which type of simulation to run. 
+n_slits is the number of slits in the wall. h and dt are the spatial and time-like step sizes respectively.
+xc,yc are the x,y coordinates of the center of the state distribution. With px,py as their momentums.
+sig_x,sig_y describe the width of the initial distribution. V0 is the strength of the potential in the wall.
+T is the total runtime. If more parameter than this are included, they are regarded as addional time parameters.
 
 ## CONVENTIONS:
 - snake_case (lower case letters separated by an underscore) is used for most variable- and function-names.
